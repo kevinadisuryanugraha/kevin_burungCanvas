@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Canvas Fluppy Bird</title>
+    <style>
+        #world {
+            border: 1px solid black;
+            background-color: gray;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="world" width="500" height="400"></canvas>
+    <script>
+        // inisialisasi canvas
+        let canvas = document.getElementById('world');
+        let context = canvas.getContext('2d');
+
+        // Import Assets
+        let bird = new Image();
+        bird.src = 'burung.png';
+
+        let tuing = new Audio();
+        tuing.src = 'kiw.mp3';
+        tuing.load();
+
+        // State
+        let g = 0;
+        let xBird = 0;
+        let yBird = canvas.height / 2 - 100;
+        let wBird = 40;
+        let hBird = 40;
+        let score = 0;
+        let passed = false;
+        let noActionTimeout; // Variabel timeout
+
+        window.addEventListener('keydown', function (event) {
+            clearTimeout(noActionTimeout); // Menghapus timeout saat tombol ditekan
+
+            if (event.keyCode == 32) {
+                g = g - 15;
+
+                tuing.pause();
+                tuing.currentTime = 0;
+                tuing.play();
+            }
+        });
+
+        let lebarPipa = 50;
+        let batasAman = 150;
+        let tinggiPipaAtas = Math.floor(Math.random() * (canvas.height - batasAman));
+        let tinggiPipaBawah = canvas.height - batasAman - tinggiPipaAtas;
+        let kecepatanPipa = 3;
+        let xPipa = canvas.width - lebarPipa;
+        let yPipaAtas = 0;
+        let yPipaBawah = tinggiPipaAtas + batasAman;
+
+        // Membuat FPS
+        window.interval = setInterval(function () {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            g = g + 1;
+
+            context.drawImage(bird, xBird, yBird, wBird, hBird);
+
+            yBird = yBird + g;
+
+            if (yBird >= canvas.height - hBird) {
+                gameOver('die'); // Perubahan di sini
+            }
+
+            if (yBird < 0) {
+                yBird = 0;
+                g = 0;
+            }
+
+            xPipa = xPipa - kecepatanPipa;
+
+            // pipa atas
+            context.fillStyle = 'yellow';
+            context.fillRect(xPipa, yPipaAtas, lebarPipa, tinggiPipaAtas);
+            context.fillStyle = 'black';
+            context.strokeRect(xPipa, yPipaAtas, lebarPipa, tinggiPipaAtas);
+
+            // pipa bawah
+            context.fillStyle = 'yellow';
+            context.fillRect(xPipa, yPipaBawah, lebarPipa, tinggiPipaBawah);
+            context.fillStyle = 'black';
+            context.strokeRect(xPipa, yPipaBawah, lebarPipa, tinggiPipaBawah);
+
+            if (xBird + wBird >= xPipa && xBird <= xPipa + lebarPipa && (yBird <= tinggiPipaAtas || yBird +
+                    hBird >= yPipaBawah)) {
+                gameOver('crash'); // Perubahan di sini
+            } else if (xBird + wBird >= xPipa && xBird <= xPipa + lebarPipa && yBird > tinggiPipaAtas && yBird +
+                hBird < yPipaBawah) {
+                if (!passed) {
+                    score++;
+                    console.log(score);
+                    passed = true;
+                }
+            }
+
+            if (xPipa + lebarPipa <= 0) {
+                xPipa = canvas.width - lebarPipa / 2;
+                tinggiPipaAtas = Math.floor(Math.random() * (canvas.height - batasAman));
+                tinggiPipaBawah = canvas.height - batasAman - tinggiPipaAtas;
+                yPipaBawah = tinggiPipaAtas + batasAman;
+                passed = false;
+                setGameOverTimeout(); // Mengatur timeout kembali setelah pipa baru muncul
+            }
+
+            context.font = '18px Arial';
+            context.fillStyle = 'white';
+            context.lineWidth = 2;
+            context.fillText('Score: ' + score, 10, 30);
+        }, 1000 / 30);
+
+        function gameOver(reason) {
+            console.log('Game Over');
+            g = 0;
+            yBird = canvas.height / 2 - 100;
+            wBird = 50;
+            hBird = 50;
+            xPipa = canvas.width - lebarPipa;
+            score = 0;
+
+            clearInterval(window.interval);
+
+            alert('Game Over');
+            window.location.reload();
+        }
+    </script>
+</body>
+
+</html>
